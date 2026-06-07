@@ -4,17 +4,49 @@ import { Star, Clock, Plus, ShoppingBag } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export default function FoodCard({ food }) {
-  const { addToCart } = useApp();
+  const { addToCart, dietPreference } = useApp();
+
+  const isDietCompliant = (food, diet) => {
+    if (!diet || diet === 'None') return true;
+    if (diet === 'Vegan') {
+      if (!food.veg) return false;
+      const nonVeganIngredients = ['mozzarella', 'cheese cream', 'gelato', 'parmesan', 'cheese', 'cream', 'molten', 'egg'];
+      const ingredients = Object.keys(food.ingredients || {}).map(k => k.toLowerCase());
+      const hasNonVegan = ingredients.some(ing => nonVeganIngredients.some(nv => ing.includes(nv)));
+      const nameLower = food.name.toLowerCase();
+      const descLower = food.description.toLowerCase();
+      const hasNonVeganText = nonVeganIngredients.some(nv => nameLower.includes(nv) || descLower.includes(nv));
+      return !hasNonVegan && !hasNonVeganText;
+    }
+    if (diet === 'Gluten-Free') {
+      const glutenIngredients = ['bun', 'dough', 'crust', 'flour', 'molten', 'brioche'];
+      const ingredients = Object.keys(food.ingredients || {}).map(k => k.toLowerCase());
+      const hasGluten = ingredients.some(ing => glutenIngredients.some(g => ing.includes(g)));
+      const nameLower = food.name.toLowerCase();
+      const descLower = food.description.toLowerCase();
+      const hasGlutenText = glutenIngredients.some(g => nameLower.includes(g) || descLower.includes(g));
+      return !hasGluten && !hasGlutenText;
+    }
+    return true;
+  };
+
+  const dietActive = dietPreference && dietPreference !== 'None';
+  const compliant = isDietCompliant(food, dietPreference);
 
   const handleQuickAdd = (e) => {
     e.preventDefault();
     e.stopPropagation();
     addToCart(food, 1, { size: 'Medium', extras: [] });
-    // Alert or animation can be added
   };
 
   return (
-    <div className="hover-lift flex flex-col bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition-all">
+    <div className={`hover-lift flex flex-col bg-white rounded-2xl border transition-all overflow-hidden ${
+      dietActive
+        ? compliant
+          ? 'border-emerald-450 ring-2 ring-emerald-50/50 shadow-md shadow-emerald-50/20'
+          : 'border-slate-100 opacity-70 hover:opacity-90'
+        : 'border-slate-100 shadow-sm hover:shadow-md'
+    }`}>
       {/* Food Image */}
       <Link to={`/food/${food.id}`} className="relative block aspect-[4/3] overflow-hidden bg-slate-100">
         <img
@@ -31,6 +63,16 @@ export default function FoodCard({ food }) {
         }`}>
           {food.veg ? 'Veg' : 'Non-Veg'}
         </span>
+        {/* Diet Profile compliance tag */}
+        {dietActive && (
+          <span className={`absolute top-3 right-3 px-2.5 py-1 rounded-lg text-[9px] font-extrabold uppercase tracking-wider shadow-sm flex items-center gap-1 ${
+            compliant
+              ? 'bg-emerald-600 text-white border border-emerald-555'
+              : 'bg-amber-100 text-amber-800 border border-amber-300'
+          }`}>
+            {compliant ? '✓ Safe' : '⚠️ Non-Compliant'}
+          </span>
+        )}
         {/* Prep Time */}
         <span className="absolute bottom-3 right-3 flex items-center gap-1 px-2.5 py-1 bg-white/90 backdrop-blur-md rounded-lg text-xs font-semibold text-slate-700 shadow-sm border border-white/55">
           <Clock className="h-3.5 w-3.5 text-emerald-600" />
@@ -64,7 +106,7 @@ export default function FoodCard({ food }) {
         <div className="flex items-center justify-between mt-5 pt-4 border-t border-slate-50">
           <div>
             <span className="text-xs text-slate-400 block font-medium">Price</span>
-            <span className="text-xl font-extrabold text-slate-950">${food.price.toFixed(2)}</span>
+            <span className="text-xl font-extrabold text-slate-950">₹{food.price}</span>
           </div>
           <div className="flex gap-2">
             <Link

@@ -12,6 +12,10 @@ import Contact from './pages/Contact';
 import AdminDashboard from './pages/AdminDashboard';
 import DeliveryDashboard from './pages/DeliveryDashboard';
 import Login from './pages/Login';
+import TrackOrders from './pages/TrackOrders';
+import CommunityFeed from './pages/CommunityFeed';
+import NotificationToast from './components/NotificationToast';
+import LiveChatbot from './components/LiveChatbot';
 import { useApp } from './context/AppContext';
 
 // Wrapper for Routes that require a specific Role
@@ -53,6 +57,10 @@ export default function App() {
       <div className="flex flex-col min-h-screen bg-slate-50 text-slate-900">
         <Navbar />
         
+        {/* Floating Notification Popups & Support Chatbots */}
+        <NotificationToast />
+        <LiveChatbot />
+
         {/* Main Content Area */}
         <main className="flex-grow">
           <Routes>
@@ -65,6 +73,8 @@ export default function App() {
             <Route path="/food/:id" element={<ProtectedRoute allowedRoles={['customer']}><FoodDetails /></ProtectedRoute>} />
             <Route path="/cart" element={<ProtectedRoute allowedRoles={['customer']}><Cart /></ProtectedRoute>} />
             <Route path="/checkout" element={<ProtectedRoute allowedRoles={['customer']}><Checkout /></ProtectedRoute>} />
+            <Route path="/track" element={<ProtectedRoute allowedRoles={['customer']}><TrackOrders /></ProtectedRoute>} />
+            <Route path="/feed" element={<ProtectedRoute allowedRoles={['customer']}><CommunityFeed /></ProtectedRoute>} />
             <Route path="/about" element={<ProtectedRoute allowedRoles={['customer']}><About /></ProtectedRoute>} />
             <Route path="/contact" element={<ProtectedRoute allowedRoles={['customer']}><Contact /></ProtectedRoute>} />
 

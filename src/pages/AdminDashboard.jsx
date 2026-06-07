@@ -16,9 +16,167 @@ import {
   AlertCircle,
   HelpCircle,
   Search,
-  Filter
+  Filter,
+  Utensils
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+
+function DispatchHeatmap() {
+  const canvasRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    // Draw background city map simulation
+    const width = canvas.width = 600;
+    const height = canvas.height = 300;
+
+    // Heatmap points
+    const points = [
+      { x: 120, y: 80, intensity: 25, label: "Sector 15 Hub" },
+      { x: 450, y: 150, intensity: 35, label: "Vashi Plaza" },
+      { x: 280, y: 220, intensity: 15, label: "Navi Mumbai Hub" },
+      { x: 180, y: 190, intensity: 45, label: "Nerul Junction" },
+      { x: 500, y: 90, intensity: 20, label: "Sanpada Center" }
+    ];
+
+    let animationId;
+    let angle = 0;
+
+    const render = () => {
+      ctx.fillStyle = '#0f172a'; // Sleek dark blueprint map background
+      ctx.fillRect(0, 0, width, height);
+
+      // Draw grid lines
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+      const gridSize = 40;
+      for (let x = 0; x < width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+
+      // Draw simulated roads
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2.5;
+      
+      // Main Highway
+      ctx.beginPath();
+      ctx.moveTo(0, height / 2);
+      ctx.lineTo(width, height / 2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(width / 2, 0);
+      ctx.lineTo(width / 2, height);
+      ctx.stroke();
+
+      // Diagonal Expressways
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(width, height);
+      ctx.stroke();
+
+      angle += 0.05;
+
+      // Draw glowing radial circles (Heatmap)
+      points.forEach(pt => {
+        // Pulsing radius scale
+        const pulse = Math.sin(angle + pt.x) * 12 + pt.intensity;
+
+        // Radial gradient for glowing heat signature
+        const grad = ctx.createRadialGradient(pt.x, pt.y, 2, pt.x, pt.y, pulse);
+        grad.addColorStop(0, 'rgba(16, 185, 129, 0.9)'); // Emerald Green Center
+        grad.addColorStop(0.3, 'rgba(16, 185, 129, 0.4)');
+        grad.addColorStop(0.8, 'rgba(16, 185, 129, 0.1)');
+        grad.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, pulse, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Small center dot
+        ctx.fillStyle = '#34d399';
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Label
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '8px monospace';
+        ctx.fillText(`${pt.label} (${Math.round(pulse)} pkg)`, pt.x + 8, pt.y + 3);
+      });
+
+      // Draw simulated delivery riders moving
+      ctx.fillStyle = '#f59e0b'; // Amber dots
+      const numRiders = 4;
+      for (let i = 0; i < numRiders; i++) {
+        const speed = 0.5 + i * 0.1;
+        const rx = (angle * 10 * speed + i * 150) % width;
+        const ry = height / 2; // Move along main highway
+        ctx.beginPath();
+        ctx.arc(rx, ry, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(245, 158, 11, 0.3)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(rx, ry, 10, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      animationId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    return () => cancelAnimationFrame(animationId);
+  }, []);
+
+  return (
+    <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-lg space-y-3 select-none">
+      <div className="flex justify-between items-center">
+        <div>
+          <h4 className="font-extrabold text-white text-xs uppercase tracking-wider">Live Dispatch Logistics Heatmap</h4>
+          <span className="text-[9px] text-slate-500 font-bold block mt-0.5">Real-time GPS coordinate mapping of hubs and riders</span>
+        </div>
+        <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-extrabold rounded-full animate-pulse">
+          LIVE MAP FEED
+        </span>
+      </div>
+      <div className="relative overflow-hidden rounded-2xl bg-[#0f172a] border border-slate-800">
+        <canvas ref={canvasRef} className="w-full h-[180px] sm:h-[220px] block" />
+      </div>
+      <div className="flex items-center gap-4 text-[9px] font-bold text-slate-500">
+        <div className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+          <span>Dispatch Hub Density</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-amber-500"></span>
+          <span>Transit Riders</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 border border-slate-700 bg-slate-800"></span>
+          <span>Blueprint Coordinates</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminDashboard() {
   const {
@@ -27,10 +185,17 @@ export default function AdminDashboard() {
     addMenuItem,
     editMenuItem,
     deleteMenuItem,
-    updateOrderStatus
+    updateOrderStatus,
+    inventory,
+    restockIngredient,
+    coupons,
+    addPromoCampaign,
+    triggerToast,
+    autoRestockEnabled,
+    setAutoRestockEnabled
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'menu', 'orders'
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'menu', 'orders', 'inventory', 'campaigns'
 
   // Search/Filter states for Menu Management
   const [menuSearch, setMenuSearch] = useState('');
@@ -41,7 +206,7 @@ export default function AdminDashboard() {
 
   // Add/Edit Item Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState(null); // null means "Adding"
+  const [editingItem, setEditingItem] = useState(null);
   const [modalData, setModalData] = useState({
     name: '',
     description: '',
@@ -53,6 +218,29 @@ export default function AdminDashboard() {
   });
   const [modalError, setModalError] = useState('');
 
+  // Promo form states
+  const [promoCode, setPromoCode] = useState('');
+  const [promoDiscount, setPromoDiscount] = useState('');
+  const [promoMinOrder, setPromoMinOrder] = useState('');
+
+  const handleExportCSV = () => {
+    const headers = 'Order ID,Customer,Phone,Subtotal,Tax,Grand Total,Status,Timestamp\n';
+    const rows = orders.map(o => 
+      `"${o.id}","${o.customerInfo?.name}","${o.customerInfo?.phone}",${o.subtotal},${o.tax},${o.total},"${o.status}","${o.timestamp}"`
+    ).join('\n');
+    
+    const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `sales_report_${new Date().toISOString().slice(0,10)}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    triggerToast('CSV Sales Report downloaded successfully!', 'success');
+  };
+
   // ----------------------------------------------------
   // ANALYTICS CALCULATIONS
   // ----------------------------------------------------
@@ -60,6 +248,17 @@ export default function AdminDashboard() {
   const totalOrdersCount = orders.length;
   const avgOrderValue = totalOrdersCount > 0 ? totalRevenue / totalOrdersCount : 0;
   const pendingOrdersCount = orders.filter(o => o.status !== 'Delivered').length;
+  
+  const preparingOrdersCount = orders.filter(o => o.status === 'Preparing').length;
+  let kitchenLoad = 'Low';
+  let kitchenLoadColor = 'text-emerald-700 bg-emerald-50 border-emerald-100';
+  if (preparingOrdersCount > 5) {
+    kitchenLoad = 'Busy';
+    kitchenLoadColor = 'text-red-750 bg-red-50 border-red-150 animate-pulse';
+  } else if (preparingOrdersCount >= 3) {
+    kitchenLoad = 'Medium';
+    kitchenLoadColor = 'text-amber-750 bg-amber-50 border-amber-150';
+  }
 
   // Group items by category count for chart
   const categoriesCount = menuItems.reduce((acc, item) => {
@@ -179,7 +378,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Tab selector */}
-        <div className="flex bg-white p-1 border border-slate-100 rounded-2xl shadow-sm w-full md:w-auto">
+        <div className="flex flex-wrap bg-white p-1 border border-slate-100 rounded-2xl shadow-sm w-full md:w-auto gap-1">
           <button
             onClick={() => setActiveTab('overview')}
             className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
@@ -204,19 +403,41 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab('orders')}
-            className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all relative ${
               activeTab === 'orders'
                 ? 'bg-emerald-600 text-white shadow shadow-emerald-150'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
             }`}
           >
             <ClipboardList className="h-4 w-4" />
-            <span>Orders Board</span>
+            <span>Kanban Orders Board</span>
             {pendingOrdersCount > 0 && (
               <span className="h-5 w-5 bg-amber-500 text-white rounded-full text-[10px] font-black flex items-center justify-center">
                 {pendingOrdersCount}
               </span>
             )}
+          </button>
+          <button
+            onClick={() => setActiveTab('inventory')}
+            className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+              activeTab === 'inventory'
+                ? 'bg-emerald-600 text-white shadow shadow-emerald-150'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            <Utensils className="h-4 w-4" />
+            <span>Inventory Ledger</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('campaigns')}
+            className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+              activeTab === 'campaigns'
+                ? 'bg-emerald-600 text-white shadow shadow-emerald-150'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            <Sparkles className="h-4 w-4" />
+            <span>Campaign Builder</span>
           </button>
         </div>
       </div>
@@ -226,13 +447,49 @@ export default function AdminDashboard() {
           ---------------------------------------------------- */}
       {activeTab === 'overview' && (
         <div className="space-y-8">
+          {/* Live commercial bar header */}
+          <div className="flex justify-between items-center bg-white border border-slate-100 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+              <span className="font-bold text-slate-700 text-xs">Live commercial data feed</span>
+            </div>
+            <button
+              onClick={handleExportCSV}
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-all flex items-center gap-1.5 shadow"
+            >
+              <span>Download Sales CSV</span>
+            </button>
+          </div>
+
+          {/* AI Demand Forecaster alerts */}
+          <div className="bg-emerald-50/50 border border-emerald-100 rounded-3xl p-5 shadow-inner space-y-3 select-none">
+            <h3 className="font-extrabold text-slate-800 text-xs flex items-center gap-1.5 uppercase tracking-wider">
+              <Sparkles className="h-4.5 w-4.5 text-emerald-655" />
+              Smart AI Demand Forecaster
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[11px] font-semibold text-slate-655">
+              <div className="flex gap-2.5 p-3.5 bg-white border border-emerald-100/50 rounded-2xl items-start">
+                <span className="text-xl leading-none">📈</span>
+                <p className="leading-relaxed">
+                  Peak demand forecasted between <span className="font-extrabold text-slate-900">8:00 PM - 10:00 PM</span> tonight. Recommend pre-cooking Pepperoni Pizzas to optimize order dispatch speed.
+                </p>
+              </div>
+              <div className="flex gap-2.5 p-3.5 bg-white border border-emerald-100/50 rounded-2xl items-start">
+                <span className="text-xl leading-none">🥑</span>
+                <p className="leading-relaxed">
+                  Avocado Salad sales are up by <span className="font-extrabold text-emerald-700">25%</span>. We recommend raising Avocado and Salad Greens ingredient inventory immediately.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Metrics cards grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Revenue card */}
             <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
               <div className="space-y-1">
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block">Total Revenue</span>
-                <span className="text-2xl font-black text-slate-900">${totalRevenue.toFixed(2)}</span>
+                <span className="text-2xl font-black text-slate-900">₹{totalRevenue.toFixed(2)}</span>
               </div>
               <span className="p-3.5 bg-emerald-50 text-emerald-600 rounded-2xl">
                 <DollarSign className="h-6 w-6" />
@@ -254,7 +511,7 @@ export default function AdminDashboard() {
             <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
               <div className="space-y-1">
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block">Avg. Ticket Size</span>
-                <span className="text-2xl font-black text-slate-900">${avgOrderValue.toFixed(2)}</span>
+                <span className="text-2xl font-black text-slate-900">₹{avgOrderValue.toFixed(2)}</span>
               </div>
               <span className="p-3.5 bg-emerald-50 text-emerald-600 rounded-2xl">
                 <TrendingUp className="h-6 w-6" />
@@ -287,7 +544,7 @@ export default function AdminDashboard() {
                     <div key={index} className="flex flex-col items-center flex-1 group relative">
                       {/* Tooltip */}
                       <span className="absolute -top-10 scale-0 group-hover:scale-100 px-2 py-1 bg-slate-900 text-white text-[10px] font-bold rounded shadow transition-all z-20">
-                        ${data.sales}
+                        ₹{data.sales}
                       </span>
                       {/* Bar */}
                       <div
@@ -329,6 +586,9 @@ export default function AdminDashboard() {
             </div>
           </div>
 
+          {/* Live Dispatch Logistics Heatmap */}
+          <DispatchHeatmap />
+
           {/* Recent Placed Orders overview */}
           <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
             <div className="flex justify-between items-center">
@@ -360,7 +620,7 @@ export default function AdminDashboard() {
                       <td className="py-3 text-slate-500">
                         {order.items.reduce((sum, item) => sum + item.quantity, 0)} items
                       </td>
-                      <td className="py-3 font-bold text-slate-900">${order.total.toFixed(2)}</td>
+                      <td className="py-3 font-bold text-slate-900">₹{order.total.toFixed(2)}</td>
                       <td className="py-3">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                           order.status === 'Delivered' ? 'bg-emerald-100 text-emerald-800' :
@@ -459,7 +719,7 @@ export default function AdminDashboard() {
                           {item.veg ? 'Veg' : 'Non-Veg'}
                         </span>
                       </td>
-                      <td className="p-4 font-bold text-slate-900">${item.price.toFixed(2)}</td>
+                      <td className="p-4 font-bold text-slate-900">₹{item.price.toFixed(2)}</td>
                       <td className="p-4 text-right space-x-2">
                         <button
                           onClick={() => handleOpenEditModal(item)}
@@ -495,134 +755,321 @@ export default function AdminDashboard() {
           TAB 3: ORDERS MANAGEMENT
           ---------------------------------------------------- */}
       {activeTab === 'orders' && (
-        <div className="space-y-6">
-          {/* Order filter */}
-          <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-              <Filter className="h-4 w-4" />
-              Filter Board:
-            </span>
-            <div className="flex bg-slate-50 p-1 border border-slate-100 rounded-xl">
-              {['All', 'Pending', 'Preparing', 'Out for Delivery', 'Delivered'].map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setOrderFilterStatus(status)}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    orderFilterStatus === status
-                      ? 'bg-white text-emerald-700 shadow-sm border border-slate-100'
-                      : 'text-slate-500 hover:text-slate-950'
-                  }`}
-                >
-                  {status}
-                </button>
-              ))}
+        <div className="space-y-6 animate-fade-in text-xs select-none">
+          {/* Chef Prep Load Timeline Banner */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white border border-slate-100 rounded-3xl p-5 shadow-sm gap-4">
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 bg-emerald-100 text-emerald-800 rounded-lg">
+                <Utensils className="h-4.5 w-4.5" />
+              </span>
+              <div>
+                <h4 className="font-extrabold text-slate-800 text-xs uppercase tracking-wider">Kitchen Chef Prep Load Timeline</h4>
+                <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Real-time monitoring of kitchen preparation queue</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <span className="text-[9px] text-slate-405 font-bold block uppercase leading-none">Preparing Orders</span>
+                <span className="text-xs font-black text-slate-800 mt-1 block">{preparingOrdersCount} in-prep</span>
+              </div>
+              <span className={`px-4 py-2 border rounded-2xl font-black text-xs uppercase tracking-widest ${kitchenLoadColor}`}>
+                Kitchen Load: {kitchenLoad}
+              </span>
             </div>
           </div>
 
-          {/* Orders grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredOrders.map((order) => (
-              <div
-                key={order.id}
-                className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-6"
-              >
-                {/* Header info */}
-                <div className="space-y-3">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <span className="text-xs font-mono font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-lg">
-                        {order.id}
-                      </span>
-                      <span className="text-[10px] text-slate-400 block mt-1">
-                        Placed: {new Date(order.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-
-                    {/* Status badge */}
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      order.status === 'Delivered' ? 'bg-emerald-550 text-white' :
-                      order.status === 'Preparing' ? 'bg-blue-600 text-white' :
-                      order.status === 'Out for Delivery' ? 'bg-purple-600 text-white animate-pulse' :
-                      'bg-amber-500 text-white animate-bounce'
-                    }`}>
-                      {order.status}
-                    </span>
-                  </div>
-
-                  {/* Customer details */}
-                  <div className="text-xs space-y-0.5 border-b border-slate-50 pb-3">
-                    <p className="font-extrabold text-slate-800">{order.customerInfo.name}</p>
-                    <p className="text-slate-500">{order.customerInfo.address}</p>
-                    <p className="text-slate-400">Phone: {order.customerInfo.phone}</p>
-                  </div>
-
-                  {/* Order items listing */}
-                  <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
-                    {order.items.map((item, index) => (
-                      <div key={index} className="flex justify-between text-xs">
-                        <span className="text-slate-655">
-                          {item.name} <span className="font-bold text-slate-400">x{item.quantity}</span>
-                        </span>
-                        <span className="font-semibold text-slate-700">
-                          Size: {item.selectedOptions?.size || 'Medium'}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+          {/* Kanban Columns grid */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start min-h-[550px]">
+            {[
+              { id: 'Pending', label: 'Incoming Orders', color: 'bg-amber-500', text: 'text-amber-800', list: orders.filter(o => o.status === 'Pending') },
+              { id: 'Preparing', label: 'Prepped / In-Prep', color: 'bg-blue-600', text: 'text-blue-800', list: orders.filter(o => o.status === 'Preparing') },
+              { id: 'Out for Delivery', label: 'Cooked / Dispatch Queue', color: 'bg-purple-650', text: 'text-purple-800', list: orders.filter(o => o.status === 'Out for Delivery') },
+              { id: 'Delivered', label: 'Delivered', color: 'bg-emerald-600', text: 'text-emerald-805', list: orders.filter(o => o.status === 'Delivered') }
+            ].map((col) => (
+              <div key={col.id} className="bg-slate-50 border border-slate-100 rounded-3xl p-4 flex flex-col h-[520px] min-w-[220px]">
+                {/* Column header */}
+                <div className="flex justify-between items-center pb-3 border-b border-slate-205 mb-3">
+                  <h3 className="font-extrabold text-slate-800 text-xs flex items-center gap-1.5 uppercase tracking-wider">
+                    <span className={`h-2.5 w-2.5 rounded-full ${col.color}`}></span>
+                    {col.label}
+                  </h3>
+                  <span className="px-2 py-0.5 bg-slate-200 text-slate-700 font-bold rounded-lg text-[9px]">
+                    {col.list.length}
+                  </span>
                 </div>
 
-                {/* Footer status controller */}
-                <div className="border-t border-slate-50 pt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div>
-                    <span className="text-[10px] text-slate-400 block font-medium">Grand Total</span>
-                    <span className="text-lg font-black text-slate-900">${order.total.toFixed(2)}</span>
-                  </div>
+                {/* Column list */}
+                <div className="flex-grow overflow-y-auto space-y-3 pr-1">
+                  {col.list.map((order) => (
+                    <div
+                      key={order.id}
+                      className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm hover:shadow hover:scale-[1.02] transition-all flex flex-col justify-between space-y-3"
+                    >
+                      {/* Card head */}
+                      <div className="flex justify-between items-start">
+                        <span className="font-mono font-bold text-emerald-805 bg-emerald-50 px-2 py-0.5 rounded text-[9px]">
+                          {order.id}
+                        </span>
+                        <span className="text-[8px] text-slate-400 font-semibold">
+                          {new Date(order.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
 
-                  {/* Transition actions */}
-                  <div className="flex gap-1.5 w-full sm:w-auto">
-                    {order.status === 'Pending' && (
-                      <button
-                        onClick={() => updateOrderStatus(order.id, 'Preparing')}
-                        className="flex-1 sm:flex-none px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow shadow-blue-100"
-                      >
-                        <RotateCcw className="h-3.5 w-3.5" />
-                        <span>Start Cooking</span>
-                      </button>
-                    )}
-                    {order.status === 'Preparing' && (
-                      <button
-                        onClick={() => updateOrderStatus(order.id, 'Out for Delivery')}
-                        className="flex-1 sm:flex-none px-4 py-2 bg-purple-650 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow shadow-purple-100"
-                      >
-                        <Truck className="h-3.5 w-3.5" />
-                        <span>Ship Package</span>
-                      </button>
-                    )}
-                    {order.status === 'Out for Delivery' && (
-                      <button
-                        onClick={() => updateOrderStatus(order.id, 'Delivered')}
-                        className="flex-1 sm:flex-none px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow shadow-emerald-100"
-                      >
-                        <CheckCircle className="h-3.5 w-3.5" />
-                        <span>Mark Delivered</span>
-                      </button>
-                    )}
-                    {order.status === 'Delivered' && (
-                      <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100 flex items-center gap-1.5">
-                        <CheckCircle className="h-4 w-4" />
-                        Delivered successfully
-                      </span>
-                    )}
-                  </div>
+                      {/* Card body */}
+                      <div className="text-[10px] space-y-1">
+                        <p className="font-extrabold text-slate-850">{order.customerInfo.name}</p>
+                        <p className="text-slate-400 line-clamp-1">{order.customerInfo.address}</p>
+                      </div>
+
+                      <div className="space-y-1.5 border-t border-slate-50 pt-2 text-[9px] text-slate-500 font-semibold max-h-20 overflow-y-auto">
+                        {order.items.map((item, index) => (
+                          <div key={index} className="space-y-0.5">
+                            <div className="flex justify-between">
+                              <span>{item.name} x{item.quantity}</span>
+                              <span>{item.selectedOptions?.size}</span>
+                            </div>
+                            {item.note && (
+                              <p className="text-[8px] text-slate-400 italic font-semibold pl-1.5 border-l border-emerald-300">
+                                Note: "{item.note}"
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Card footer / Actions */}
+                      <div className="flex items-center justify-between border-t border-slate-50 pt-3">
+                        <span className="font-black text-slate-900 text-xs">₹{order.total}</span>
+                        
+                        <div className="flex gap-1">
+                          {order.status === 'Pending' && (
+                            <button
+                              onClick={() => updateOrderStatus(order.id, 'Preparing')}
+                              className="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-750 text-white font-bold rounded-xl text-[9px] transition-all"
+                            >
+                              Prep
+                            </button>
+                          )}
+                          {order.status === 'Preparing' && (
+                            <button
+                              onClick={() => updateOrderStatus(order.id, 'Out for Delivery')}
+                              className="px-2.5 py-1.5 bg-purple-650 hover:bg-purple-700 text-white font-bold rounded-xl text-[9px] transition-all"
+                            >
+                              Ship
+                            </button>
+                          )}
+                          {order.status === 'Out for Delivery' && (
+                            <button
+                              onClick={() => updateOrderStatus(order.id, 'Delivered')}
+                              className="px-2.5 py-1.5 bg-emerald-650 hover:bg-emerald-700 text-white font-bold rounded-xl text-[9px] transition-all"
+                            >
+                              Arrive
+                            </button>
+                          )}
+                          {order.status === 'Delivered' && (
+                            <span className="text-[8px] text-emerald-750 font-black bg-emerald-50 px-2 py-1 rounded-lg">
+                              Done
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {col.list.length === 0 && (
+                    <div className="py-10 text-center text-slate-400 font-semibold text-[10px]">
+                      No orders in column
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
 
-            {filteredOrders.length === 0 && (
-              <div className="col-span-2 p-12 text-center bg-white border border-slate-100 rounded-3xl text-slate-400">
-                No orders match this status classification.
+      {/* ----------------------------------------------------
+          TAB 4: INVENTORY LEDGER
+          ---------------------------------------------------- */}
+      {activeTab === 'inventory' && (
+        <div className="space-y-6 animate-fade-in text-xs select-none">
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-50 pb-4 gap-4">
+              <div>
+                <h3 className="font-extrabold text-base text-slate-950">Raw Ingredients Inventory Ledger</h3>
+                <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                  Track real-time stock levels of organic ingredients. Ordering food deducts quantities automatically.
+                </p>
               </div>
-            )}
+              
+              <div className="flex items-center gap-3">
+                {/* Auto Restock Switch */}
+                <label className="flex items-center gap-2.5 cursor-pointer bg-slate-50 border border-slate-200 rounded-2xl px-3 py-1.5 select-none hover:bg-slate-100 transition-all">
+                  <input
+                    type="checkbox"
+                    checked={autoRestockEnabled}
+                    onChange={(e) => setAutoRestockEnabled(e.target.checked)}
+                    className="rounded text-emerald-600 focus:ring-emerald-500 h-4.5 w-4.5"
+                  />
+                  <div className="text-left">
+                    <span className="text-[10px] font-bold text-slate-700 block leading-none">Auto-Restock Ledgers</span>
+                    <span className="text-[8px] text-slate-450 font-semibold mt-0.5 block">Automate +15 raw replenishment</span>
+                  </div>
+                </label>
+
+                <span className="px-3 py-2 bg-emerald-50 text-emerald-800 border border-emerald-100 rounded-2xl font-bold text-[10px]">
+                  Low Stock Threshold: &lt; 3
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+              {Object.entries(inventory).map(([ingName, stockCount]) => {
+                const isLow = stockCount < 3;
+                const isCritical = stockCount === 0;
+                return (
+                  <div
+                    key={ingName}
+                    className={`border rounded-2xl p-4 flex justify-between items-center transition-all ${
+                      isCritical ? 'bg-red-50/70 border-red-200' :
+                      isLow ? 'bg-amber-50/70 border-amber-200' :
+                      'bg-slate-50/50 border-slate-150'
+                    }`}
+                  >
+                    <div className="space-y-1">
+                      <h4 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                        {ingName}
+                        {isLow && (
+                          <span className={`inline-block h-2 w-2 rounded-full bg-red-500 ${isCritical ? 'animate-ping' : 'animate-pulse'}`} title="Low Stock Warning"></span>
+                        )}
+                      </h4>
+                      <p className="text-xs font-black text-slate-900">
+                        Stock: <span className={isLow ? 'text-red-650' : 'text-emerald-700'}>{stockCount} units</span>
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => restockIngredient(ingName, 15)}
+                      className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-[10px] shadow transition-all"
+                    >
+                      +15 Restock
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ----------------------------------------------------
+          TAB 5: CAMPAIGN & PROMO BUILDER
+          ---------------------------------------------------- */}
+      {activeTab === 'campaigns' && (
+        <div className="space-y-6 animate-fade-in text-xs">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* Form builder */}
+            <div className="lg:col-span-5 bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
+              <h3 className="font-extrabold text-base text-slate-950 border-b border-slate-50 pb-3">Create Promo Campaign</h3>
+              
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!promoCode.trim() || !promoDiscount.trim() || !promoMinOrder.trim()) {
+                    triggerToast('All campaign parameters are required!', 'error');
+                    return;
+                  }
+                  const discVal = parseInt(promoDiscount);
+                  const minVal = parseInt(promoMinOrder);
+                  if (isNaN(discVal) || discVal <= 0 || discVal > 100) {
+                    triggerToast('Discount must be between 1% and 100%', 'error');
+                    return;
+                  }
+                  if (isNaN(minVal) || minVal < 0) {
+                    triggerToast('Minimum order value must be positive', 'error');
+                    return;
+                  }
+
+                  const res = addPromoCampaign(promoCode.trim(), discVal, minVal);
+                  if (res.success) {
+                    setPromoCode('');
+                    setPromoDiscount('');
+                    setPromoMinOrder('');
+                  } else {
+                    triggerToast(res.message, 'error');
+                  }
+                }}
+                className="space-y-4"
+              >
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-450 uppercase tracking-wider block">Promo Code</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. WEEKEND30"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-205 focus:outline-none focus:ring-2 focus:ring-emerald-500 uppercase font-mono font-bold text-slate-800"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-455 uppercase tracking-wider block">Discount Percent (%)</label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 30"
+                    value={promoDiscount}
+                    onChange={(e) => setPromoDiscount(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-205 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-455 uppercase tracking-wider block">Min Order Value (₹)</label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 399"
+                    value={promoMinOrder}
+                    onChange={(e) => setPromoMinOrder(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-205 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-3 bg-emerald-650 hover:bg-emerald-700 text-white font-bold rounded-xl shadow transition-all"
+                >
+                  Launch Campaign Code
+                </button>
+              </form>
+            </div>
+
+            {/* List active coupons */}
+            <div className="lg:col-span-7 bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
+              <h3 className="font-extrabold text-base text-slate-950 border-b border-slate-50 pb-3">Active Campaign Promos</h3>
+              
+              <div className="space-y-3">
+                {coupons.map((coupon) => (
+                  <div
+                    key={coupon.code}
+                    className="border border-slate-150 rounded-2xl p-4 flex justify-between items-center bg-slate-50/50"
+                  >
+                    <div className="space-y-1">
+                      <span className="font-mono text-sm font-black tracking-wider text-emerald-950 block">
+                        {coupon.code}
+                      </span>
+                      <p className="text-[10px] text-slate-455 font-semibold">
+                        Min Order: ₹{coupon.minOrder} • Applied Discount: {coupon.discount}% off
+                      </p>
+                    </div>
+
+                    <span className="px-3.5 py-1.5 bg-emerald-100 text-emerald-805 rounded-xl font-bold text-xs border border-emerald-150">
+                      {coupon.discount}% Discount
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -672,7 +1119,7 @@ export default function AdminDashboard() {
               {/* Price & Category */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-400 uppercase block">Price ($)</label>
+                  <label className="font-bold text-slate-400 uppercase block">Price (₹)</label>
                   <input
                     type="text"
                     value={modalData.price}

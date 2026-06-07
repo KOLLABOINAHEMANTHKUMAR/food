@@ -6,9 +6,36 @@ import { useApp } from '../context/AppContext';
 export default function FoodDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { menuItems, addToCart } = useApp();
+  const { menuItems, addToCart, dietPreference } = useApp();
 
   const food = menuItems.find((item) => item.id === id);
+
+  const isDietCompliant = (foodItem, diet) => {
+    if (!diet || diet === 'None') return true;
+    if (diet === 'Vegan') {
+      if (!foodItem.veg) return false;
+      const nonVeganIngredients = ['mozzarella', 'cheese cream', 'gelato', 'parmesan', 'cheese', 'cream', 'molten', 'egg'];
+      const ingredients = Object.keys(foodItem.ingredients || {}).map(k => k.toLowerCase());
+      const hasNonVegan = ingredients.some(ing => nonVeganIngredients.some(nv => ing.includes(nv)));
+      const nameLower = foodItem.name.toLowerCase();
+      const descLower = foodItem.description.toLowerCase();
+      const hasNonVeganText = nonVeganIngredients.some(nv => nameLower.includes(nv) || descLower.includes(nv));
+      return !hasNonVegan && !hasNonVeganText;
+    }
+    if (diet === 'Gluten-Free') {
+      const glutenIngredients = ['bun', 'dough', 'crust', 'flour', 'molten', 'brioche'];
+      const ingredients = Object.keys(foodItem.ingredients || {}).map(k => k.toLowerCase());
+      const hasGluten = ingredients.some(ing => glutenIngredients.some(g => ing.includes(g)));
+      const nameLower = foodItem.name.toLowerCase();
+      const descLower = foodItem.description.toLowerCase();
+      const hasGlutenText = glutenIngredients.some(g => nameLower.includes(g) || descLower.includes(g));
+      return !hasGluten && !hasGlutenText;
+    }
+    return true;
+  };
+
+  const dietActive = dietPreference && dietPreference !== 'None';
+  const compliant = food ? isDietCompliant(food, dietPreference) : true;
 
   if (!food) {
     return (
@@ -30,16 +57,16 @@ export default function FoodDetails() {
 
   // Extras options
   const extrasOptions = [
-    { name: 'Extra Sauce', price: 0.75 },
-    { name: 'Extra Cheese', price: 1.50 },
-    { name: 'Gluten-Free Prep', price: 2.00 }
+    { name: 'Extra Sauce', price: 20 },
+    { name: 'Extra Cheese', price: 50 },
+    { name: 'Gluten-Free Prep', price: 60 }
   ];
 
   // Price calculations
   const sizeModifiers = {
-    'Small': -1.50,
-    'Medium': 0.00,
-    'Large': 2.50
+    'Small': -50,
+    'Medium': 0,
+    'Large': 100
   };
 
   const extraPrices = extras.reduce((sum, extraName) => {
@@ -120,6 +147,30 @@ export default function FoodDetails() {
             <p className="text-slate-500 leading-relaxed text-sm">{food.description}</p>
           </div>
 
+          {dietActive && !compliant && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3 text-red-800 animate-pulse">
+              <span className="text-xl leading-none">⚠️</span>
+              <div>
+                <h4 className="font-extrabold text-xs uppercase tracking-wider">Dietary Safety Warning</h4>
+                <p className="text-[11px] font-semibold mt-1 leading-relaxed">
+                  This dish violates your active <span className="font-black text-red-900 uppercase">{dietPreference}</span> preference profile. Please review the ingredients before consuming.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {dietActive && compliant && (
+            <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-start gap-3 text-emerald-800">
+              <span className="text-xl leading-none">🌿</span>
+              <div>
+                <h4 className="font-extrabold text-xs uppercase tracking-wider">{dietPreference} Approved</h4>
+                <p className="text-[11px] font-semibold mt-1 leading-relaxed">
+                  This dish matches your active <span className="font-black text-emerald-900 uppercase">{dietPreference}</span> preference profile. Safe to order!
+                </p>
+              </div>
+            </div>
+          )}
+
           <hr className="border-slate-100" />
 
           {/* Size customizer */}
@@ -138,9 +189,9 @@ export default function FoodDetails() {
                 >
                   <span className="text-xs uppercase font-semibold">{s}</span>
                   <span className="text-[10px] text-slate-400 mt-1">
-                    {s === 'Small' && '-$1.50'}
+                    {s === 'Small' && '-₹50'}
                     {s === 'Medium' && 'Standard'}
-                    {s === 'Large' && '+$2.50'}
+                    {s === 'Large' && '+₹100'}
                   </span>
                 </button>
               ))}
@@ -171,7 +222,7 @@ export default function FoodDetails() {
                       </div>
                       <span className="text-sm font-semibold">{opt.name}</span>
                     </div>
-                    <span className="text-xs text-slate-400">+${opt.price.toFixed(2)}</span>
+                    <span className="text-xs text-slate-400">+₹{opt.price}</span>
                   </button>
                 );
               })}
@@ -185,7 +236,7 @@ export default function FoodDetails() {
             {/* Price tag */}
             <div className="text-center sm:text-left">
               <span className="text-xs text-slate-400 block font-medium">Total Price</span>
-              <span className="text-3xl font-black text-slate-950">${totalPrice.toFixed(2)}</span>
+              <span className="text-3xl font-black text-slate-950">₹{totalPrice}</span>
             </div>
 
             {/* Quantity Controller & Add button */}
@@ -230,11 +281,54 @@ export default function FoodDetails() {
         {/* Ingredients */}
         <div className="lg:col-span-6 space-y-4">
           <h2 className="text-2xl font-bold text-slate-900">Ingredients & Diet info</h2>
-          <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-3 text-sm text-slate-650 leading-relaxed">
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-6 text-sm text-slate-650 leading-relaxed">
             <p>
               We pride ourselves on organic food formulations. This dish uses locally sourced, chemical-free ingredients.
             </p>
-            <ul className="list-disc pl-5 space-y-1 text-slate-500">
+            
+            {/* SVG Health Macro Indicators */}
+            <div className="space-y-3 pt-2">
+              <h3 className="font-bold text-slate-900 text-xs uppercase tracking-wider">Nutritional Breakdown</h3>
+              <div className="grid grid-cols-4 gap-2 text-center select-none">
+                {[
+                  { label: 'Calories', val: '380 kcal', pct: 0.75, color: '#10b981', bg: '#ecfdf5' },
+                  { label: 'Protein', val: '14g', pct: 0.55, color: '#3b82f6', bg: '#eff6ff' },
+                  { label: 'Carbs', val: '42g', pct: 0.65, color: '#f59e0b', bg: '#fffbeb' },
+                  { label: 'Fats', val: '11g', pct: 0.40, color: '#ef4444', bg: '#fef2f2' }
+                ].map((macro) => {
+                  const r = 24;
+                  const circ = 2 * Math.PI * r;
+                  const offset = circ - macro.pct * circ;
+                  return (
+                    <div key={macro.label} className="flex flex-col items-center p-2 rounded-2xl bg-slate-50 border border-slate-100/50">
+                      <div className="relative w-14 h-14">
+                        <svg className="w-full h-full transform -rotate-90">
+                          <circle cx="28" cy="28" r={r} stroke="#e2e8f0" strokeWidth="3" fill="transparent" />
+                          <circle
+                            cx="28"
+                            cy="28"
+                            r={r}
+                            stroke={macro.color}
+                            strokeWidth="3.5"
+                            fill="transparent"
+                            strokeDasharray={circ}
+                            strokeDashoffset={offset}
+                            strokeLinecap="round"
+                            className="transition-all duration-1000 ease-out"
+                          />
+                        </svg>
+                        <span className="absolute inset-0 flex items-center justify-center text-[8px] font-black text-slate-750">
+                          {macro.val}
+                        </span>
+                      </div>
+                      <span className="text-[9px] font-extrabold text-slate-500 mt-2">{macro.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <ul className="list-disc pl-5 space-y-1 text-slate-500 pt-2 border-t border-slate-50">
               <li>100% natural, farm-to-table organic components</li>
               <li>Free of artificial stabilizers, food dyes, and trans-fats</li>
               <li>Contains allergen compounds (gluten, dairy/cheese where applicable)</li>

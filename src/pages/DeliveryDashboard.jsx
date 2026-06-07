@@ -14,8 +14,8 @@ export default function DeliveryDashboard() {
     updateOrderStatus(orderId, 'Delivered');
   };
 
-  // Simulated earnings: $5.00 per delivery completed
-  const simulatedEarnings = completedDeliveries.length * 5.00;
+  // Simulated earnings: ₹50.00 per delivery completed
+  const simulatedEarnings = completedDeliveries.length * 50.00;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
@@ -41,7 +41,7 @@ export default function DeliveryDashboard() {
           </div>
           <div className="flex-1 md:flex-initial bg-emerald-50 border border-emerald-150 rounded-2xl px-5 py-3 text-center">
             <span className="text-[10px] text-emerald-600 uppercase tracking-wider block font-bold">Rider Commission</span>
-            <span className="text-xl font-black text-emerald-700 font-mono">${simulatedEarnings.toFixed(2)}</span>
+            <span className="text-xl font-black text-emerald-700 font-mono">₹{simulatedEarnings.toFixed(2)}</span>
           </div>
         </div>
       </div>
@@ -122,7 +122,7 @@ export default function DeliveryDashboard() {
                 {order.customerInfo.paymentMethod === 'Cash on Delivery' && (
                   <div className="p-3 bg-amber-50 text-amber-900 border border-amber-200 rounded-xl font-bold flex items-center gap-2">
                     <DollarSign className="h-4 w-4 stroke-[3]" />
-                    <span>COD Order: Collect ${order.total.toFixed(2)} cash from customer.</span>
+                    <span>COD Order: Collect ₹{order.total.toFixed(2)} cash from customer.</span>
                   </div>
                 )}
 
@@ -191,7 +191,7 @@ export default function DeliveryDashboard() {
                     <td className="p-4">
                       <span className="font-semibold text-slate-655">{order.customerInfo.paymentMethod}</span>
                     </td>
-                    <td className="p-4 text-right font-bold text-emerald-700">+$5.00</td>
+                    <td className="p-4 text-right font-bold text-emerald-700">+₹50.00</td>
                   </tr>
                 ))}
               </tbody>

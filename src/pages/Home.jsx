@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronRight, Compass, ShieldCheck, Zap, Sparkles } from 'lucide-react';
+import { Search, ChevronRight, Compass, ShieldCheck, Zap, Sparkles, Gift } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import FoodCard from '../components/FoodCard';
 
 export default function Home() {
-  const { menuItems } = useApp();
+  const { menuItems, user, orders } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
+  const [giftDismissed, setGiftDismissed] = useState(false);
   const navigate = useNavigate();
 
   const handleSearchSubmit = (e) => {
@@ -33,8 +34,49 @@ export default function Home() {
     { name: 'Beverages', icon: '🥤', count: menuItems.filter(item => item.category === 'Beverages').length }
   ];
 
+  const giftedOrder = orders.find(
+    (o) =>
+      o.giftRecipientEmail?.toLowerCase() === user?.email?.toLowerCase() &&
+      o.status !== 'Delivered'
+  );
+
   return (
     <div className="space-y-16 pb-16">
+      {giftedOrder && !giftDismissed && (
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 -mb-8">
+          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-3xl p-5 shadow-lg flex items-center justify-between gap-4 animate-slide-down relative overflow-hidden select-none">
+            <div className="absolute right-0 top-0 h-full w-1/4 bg-white/10 rounded-l-full blur-xl"></div>
+            
+            <div className="flex items-center gap-3 relative z-10 text-xs sm:text-sm font-bold">
+              <span className="text-2xl animate-bounce">🎁</span>
+              <div>
+                <p className="font-extrabold text-white text-sm">
+                  🎉 Congrats! {giftedOrder.customerInfo.name} gifted you a {giftedOrder.items[0]?.name}!
+                </p>
+                <p className="text-[10px] text-emerald-100 font-semibold mt-0.5">
+                  Your delivery is active and on the way! Status: <span className="underline uppercase tracking-wider">{giftedOrder.status}</span>
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2 relative z-10">
+              <button
+                onClick={() => navigate('/track')}
+                className="px-4 py-2 bg-white text-emerald-850 font-black rounded-xl text-xs shadow hover:bg-emerald-50 transition-all"
+              >
+                Track Gift
+              </button>
+              <button
+                onClick={() => setGiftDismissed(true)}
+                className="p-1.5 hover:bg-white/15 rounded-lg text-white font-bold transition-all text-xs"
+                title="Dismiss"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-b from-emerald-50 via-white to-transparent pt-12 pb-8 sm:pt-16 lg:pt-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

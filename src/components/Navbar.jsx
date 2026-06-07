@@ -4,7 +4,7 @@ import { ShoppingBag, Menu, X, LogOut, User, ShieldAlert, Truck, Utensils } from
 import { useApp } from '../context/AppContext';
 
 export default function Navbar() {
-  const { cart, user, logout } = useApp();
+  const { cart, user, logout, dietPreference, setDietPreference } = useApp();
   const location = useLocation();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
@@ -56,6 +56,26 @@ export default function Navbar() {
                 >
                   Our Menu
                 </Link>
+                {user?.role === 'customer' && (
+                  <>
+                    <Link
+                      to="/track"
+                      className={`text-sm font-medium transition-colors duration-200 ${
+                        isActive('/track') ? 'text-emerald-600' : 'text-slate-650 hover:text-emerald-500'
+                      }`}
+                    >
+                      Track Orders
+                    </Link>
+                    <Link
+                      to="/feed"
+                      className={`text-sm font-medium transition-colors duration-200 ${
+                        isActive('/feed') ? 'text-emerald-600' : 'text-slate-650 hover:text-emerald-500'
+                      }`}
+                    >
+                      Foodie Feed
+                    </Link>
+                  </>
+                )}
                 <Link
                   to="/about"
                   className={`text-sm font-medium transition-colors duration-200 ${
@@ -94,8 +114,28 @@ export default function Navbar() {
 
           {/* Right Action Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            {user ? (
+            {(!user || user.role === 'customer') && (
+              <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-1.5 select-none">
+                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Diet Profile:</span>
+                <select
+                  value={dietPreference}
+                  onChange={(e) => setDietPreference(e.target.value)}
+                  className="bg-transparent focus:outline-none text-xs text-slate-805 font-bold cursor-pointer pr-1"
+                >
+                  <option value="None">None</option>
+                  <option value="Vegan">Vegan 🌿</option>
+                  <option value="Gluten-Free">Gluten-Free 🌾</option>
+                </select>
+              </div>
+            )}
+             {user ? (
               <div className="flex items-center gap-4">
+                {/* Green Loyalty Coins wallet display */}
+                {user.role === 'customer' && (
+                  <span className="text-xs font-extrabold px-3 py-1.5 bg-emerald-50 border border-emerald-150 rounded-xl text-emerald-800 flex items-center gap-1 select-none">
+                    🪙 {user.coins} Coins
+                  </span>
+                )}
                 {/* Active user status badge */}
                 <div className="flex items-center gap-2.5 px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-xl">
                   <span className={`p-1.5 rounded-lg text-xs ${
@@ -176,17 +216,38 @@ export default function Navbar() {
       {/* Mobile Drawer Menu */}
       {isOpen && (
         <div className="md:hidden border-t border-slate-100 bg-white px-4 pt-2 pb-4 space-y-1 shadow-inner text-xs">
+          {(!user || user.role === 'customer') && (
+            <div className="px-3 py-2 bg-slate-50 border border-slate-150 rounded-xl flex items-center justify-between mb-3 select-none">
+              <span className="text-xs font-bold text-slate-600">Diet Profile</span>
+              <select
+                value={dietPreference}
+                onChange={(e) => setDietPreference(e.target.value)}
+                className="bg-transparent focus:outline-none text-xs text-slate-805 font-bold cursor-pointer pr-1"
+              >
+                <option value="None">None</option>
+                <option value="Vegan">Vegan 🌿</option>
+                <option value="Gluten-Free">Gluten-Free 🌾</option>
+              </select>
+            </div>
+          )}
           {user ? (
             <>
               {/* User Avatar details */}
-              <div className="px-3 py-3 bg-slate-50 border rounded-xl flex items-center gap-2 mb-3">
-                <span className="p-1.5 bg-emerald-100 rounded-lg text-emerald-750 text-xs">
-                  <User className="h-4 w-4" />
-                </span>
-                <div>
-                  <h4 className="font-bold text-slate-800 leading-none">{user.name}</h4>
-                  <span className="text-[9px] text-slate-400 block capitalize mt-0.5">{user.role} role active</span>
+              <div className="px-3 py-3 bg-slate-50 border rounded-xl flex items-center justify-between gap-2 mb-3 select-none">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 bg-emerald-100 rounded-lg text-emerald-755 text-xs">
+                    <User className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <h4 className="font-bold text-slate-800 leading-none">{user.name}</h4>
+                    <span className="text-[9px] text-slate-400 block capitalize mt-0.5">{user.role} role active</span>
+                  </div>
                 </div>
+                {user.role === 'customer' && (
+                  <span className="text-[10px] font-black px-2 py-1 bg-emerald-100 text-emerald-800 rounded-lg">
+                    🪙 {user.coins}
+                  </span>
+                )}
               </div>
 
               {/* Paths */}
@@ -209,6 +270,24 @@ export default function Navbar() {
                     }`}
                   >
                     Our Menu
+                  </Link>
+                  <Link
+                    to="/track"
+                    onClick={() => setIsOpen(false)}
+                    className={`block px-3 py-2.5 rounded-xl text-base font-medium ${
+                      isActive('/track') ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    Track Orders
+                  </Link>
+                  <Link
+                    to="/feed"
+                    onClick={() => setIsOpen(false)}
+                    className={`block px-3 py-2.5 rounded-xl text-base font-medium ${
+                      isActive('/feed') ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    Foodie Feed
                   </Link>
                   <Link
                     to="/about"
