@@ -9,9 +9,11 @@ export default function TrackOrders() {
   const navigate = useNavigate();
   const [expandedOrders, setExpandedOrders] = useState({});
 
-  // Filter orders for the active logged-in customer
+  // Filter orders for the active logged-in customer (including gifted orders received)
   const customerOrders = orders.filter(
-    (order) => order.customerInfo.email.toLowerCase() === user?.email.toLowerCase()
+    (order) =>
+      order.customerInfo.email.toLowerCase() === user?.email.toLowerCase() ||
+      (order.giftRecipientEmail && order.giftRecipientEmail.toLowerCase() === user?.email.toLowerCase())
   );
 
   // Split into active tracking and completed history
@@ -100,12 +102,17 @@ export default function TrackOrders() {
                 {/* Header info */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-50">
                   <div>
-                    <span className="text-xs font-mono font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-lg">
+                    <span className="text-xs font-mono font-bold text-emerald-808 bg-emerald-50 px-2.5 py-0.5 rounded-lg">
                       {order.id}
                     </span>
-                    <span className="text-xs text-slate-400 ml-2">
+                    <span className="text-xs text-slate-450 ml-2">
                       Placed: {new Date(order.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
+                    {order.giftRecipientEmail && order.giftRecipientEmail.toLowerCase() === user?.email.toLowerCase() && (
+                      <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-lg ml-2 border border-rose-100 animate-pulse">
+                        🎁 Gift from {order.customerInfo.name}
+                      </span>
+                    )}
                   </div>
                   <div className="text-right">
                     <span className="text-xs text-slate-400 block font-medium">Total Amount</span>
@@ -212,10 +219,15 @@ export default function TrackOrders() {
                         <span className="font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded text-[10px]">
                           {order.id}
                         </span>
-                        <span className="text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1">
+                        <span className="text-emerald-707 bg-emerald-50 px-2.5 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1">
                           <CheckCircle className="h-3.5 w-3.5" />
                           Delivered
                         </span>
+                        {order.giftRecipientEmail && order.giftRecipientEmail.toLowerCase() === user?.email.toLowerCase() && (
+                          <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-100">
+                            🎁 Gifted by {order.customerInfo.name}
+                          </span>
+                        )}
                       </div>
                       <span className="text-[10px] text-slate-400 block mt-1">
                         Completed: {new Date(order.timestamp).toLocaleDateString()} at {new Date(order.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
