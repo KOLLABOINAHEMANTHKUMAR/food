@@ -667,6 +667,8 @@ export default function AdminDashboard() {
                 className="bg-slate-50 border border-slate-150 rounded-xl px-3 py-2 text-xs font-bold text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
                 <option value="All">All Categories</option>
+                <option value="Meals">Meals</option>
+                <option value="Biryanis">Biryanis</option>
                 <option value="Burgers">Burgers</option>
                 <option value="Pizzas">Pizzas</option>
                 <option value="Salads">Salads</option>
@@ -1136,6 +1138,8 @@ export default function AdminDashboard() {
                     onChange={(e) => setModalData({ ...modalData, category: e.target.value })}
                     className="w-full px-3.5 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
                   >
+                    <option value="Meals">Meals</option>
+                    <option value="Biryanis">Biryanis</option>
                     <option value="Burgers">Burgers</option>
                     <option value="Pizzas">Pizzas</option>
                     <option value="Salads">Salads</option>

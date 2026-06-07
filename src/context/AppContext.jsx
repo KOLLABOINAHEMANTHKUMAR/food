@@ -104,6 +104,54 @@ const DEFAULT_MENU_ITEMS = [
     veg: true,
     prepTime: '10 min',
     ingredients: { "Chocolate Molten": 1, "Vanilla Gelato": 1 }
+  },
+  {
+    id: '9',
+    name: 'Royal Hyderabadi Biryani',
+    description: 'A royal blend of fragrant organic basmati rice, tender farm-reared chicken, and a rich medley of hand-ground spices cooked slow in traditional dum style.',
+    price: 349,
+    image: 'https://images.unsplash.com/photo-1633945274405-b6c8069047b0?w=500&auto=format&fit=crop&q=60',
+    category: 'Biryanis',
+    rating: 4.9,
+    veg: false,
+    prepTime: '25 min',
+    ingredients: { "Basmati Rice": 1, "Farm Chicken": 1, "Biryani Spices": 1 }
+  },
+  {
+    id: '10',
+    name: 'Organic Jackfruit Dum Biryani',
+    description: 'Fragrant basmati rice layered with tender raw jackfruit chunks, fresh mint, caramelized onions, and signature organic spices cooked dum style.',
+    price: 299,
+    image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=500&auto=format&fit=crop&q=60',
+    category: 'Biryanis',
+    rating: 4.8,
+    veg: true,
+    prepTime: '20 min',
+    ingredients: { "Basmati Rice": 1, "Raw Jackfruit": 1, "Biryani Spices": 1 }
+  },
+  {
+    id: '11',
+    name: 'Premium Organic North Thali',
+    description: 'A wholesome meal of organic paneer butter masala, yellow dal tadka, fresh cumin pulao, butter roti, cucumber raita, and sweet gulab jamun.',
+    price: 279,
+    image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=500&auto=format&fit=crop&q=60',
+    category: 'Meals',
+    rating: 4.9,
+    veg: true,
+    prepTime: '18 min',
+    ingredients: { "Basmati Rice": 1, "Organic Paneer": 1, "Whole Wheat Flour": 1 }
+  },
+  {
+    id: '12',
+    name: 'South Indian Deluxe Meals',
+    description: 'Traditional healthy platter featuring organic ponni rice, aromatic sambar, rasam, freshly grated coconut avial, pathiri, papadum, and sweet payasam.',
+    price: 229,
+    image: 'https://images.unsplash.com/photo-1610192244261-3f33de3f55e4?w=500&auto=format&fit=crop&q=60',
+    category: 'Meals',
+    rating: 4.8,
+    veg: true,
+    prepTime: '15 min',
+    ingredients: { "Ponni Rice": 1, "Coconut & Veggies": 1, "Sambar Lentils": 1 }
   }
 ];
 
@@ -123,7 +171,16 @@ const DEFAULT_INVENTORY = {
   "Chocolate Molten": 8,
   "Vanilla Gelato": 12,
   "Avocado": 4,  // Low stock avocado to demonstrate restock warnings!
-  "Salad Greens": 15
+  "Salad Greens": 15,
+  "Basmati Rice": 20,
+  "Farm Chicken": 15,
+  "Biryani Spices": 25,
+  "Raw Jackfruit": 12,
+  "Organic Paneer": 15,
+  "Whole Wheat Flour": 20,
+  "Ponni Rice": 20,
+  "Coconut & Veggies": 18,
+  "Sambar Lentils": 22
 };
 
 const DEFAULT_COUPONS = [
@@ -199,12 +256,23 @@ export const AppProvider = ({ children }) => {
   // Items / Inventory
   const [menuItems, setMenuItems] = useState(() => {
     const saved = localStorage.getItem('food_menu_items');
-    return saved ? JSON.parse(saved) : DEFAULT_MENU_ITEMS;
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (!parsed.some(item => item.id === '9')) {
+        return [...parsed, ...DEFAULT_MENU_ITEMS.filter(d => !parsed.some(p => p.id === d.id))];
+      }
+      return parsed;
+    }
+    return DEFAULT_MENU_ITEMS;
   });
-
+ 
   const [inventory, setInventory] = useState(() => {
     const saved = localStorage.getItem('food_inventory');
-    return saved ? JSON.parse(saved) : DEFAULT_INVENTORY;
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return { ...DEFAULT_INVENTORY, ...parsed };
+    }
+    return DEFAULT_INVENTORY;
   });
 
   // Coupons

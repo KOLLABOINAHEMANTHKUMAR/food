@@ -27,6 +27,8 @@ export default function Home() {
     .slice(0, 4);
 
   const categories = [
+    { name: 'Meals', icon: '🍲', count: menuItems.filter(item => item.category === 'Meals').length },
+    { name: 'Biryanis', icon: '🍛', count: menuItems.filter(item => item.category === 'Biryanis').length },
     { name: 'Burgers', icon: '🍔', count: menuItems.filter(item => item.category === 'Burgers').length },
     { name: 'Pizzas', icon: '🍕', count: menuItems.filter(item => item.category === 'Pizzas').length },
     { name: 'Salads', icon: '🥗', count: menuItems.filter(item => item.category === 'Salads').length },
@@ -170,7 +172,7 @@ export default function Home() {
           <p className="text-slate-500 max-w-md mx-auto">Explore our diverse menu selections tailored to your tastebuds</p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
           {categories.map((cat) => (
             <button
               key={cat.name}

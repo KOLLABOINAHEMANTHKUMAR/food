@@ -40,7 +40,7 @@ export default function Menu() {
     setSearchParams(updated);
   };
 
-  const categories = ['All', 'Burgers', 'Pizzas', 'Salads', 'Desserts', 'Beverages'];
+  const categories = ['All', 'Meals', 'Biryanis', 'Burgers', 'Pizzas', 'Salads', 'Desserts', 'Beverages'];
 
   // Filter & Sort menu items
   const filteredItems = menuItems
