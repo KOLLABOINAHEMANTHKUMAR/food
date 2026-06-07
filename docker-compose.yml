@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  food-ordering-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: food-ordering-app:latest
+    container_name: food-ordering-container
+    ports:
+      - "4000:80"
+    restart: always
